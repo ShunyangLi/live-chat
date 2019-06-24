@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn" >
+
+<head>
+<meta charset="UTF-8">
+<title>Chat page</title>
+<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../static/reset.min.css">
+<link rel="stylesheet" href="../static/mul.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="left" style="height: 100%; overflow: auto; flex-direction: column" id="chat_peoples">
+
+            </div>
+
+            <div class="right" id="chat_info">
+
+                <div class="write">
+                    <input type="text" id="user_input" />
+                    <a href="javascript:;" class="write-link send" id="send_btn"></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+
+    <script>
+        var users = [];
+        var current = "";
+        var input = $("#user_input");
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        try {
+            socket.on( 'staff', function( msg ) {
+                var user_id = msg.user_id;
+                var info = unescape(msg.user_message);
+                var onclick_id = "\'"+user_id+ "\'";
+                var dt = new Date();
+                var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+
+                // if not exists we need create the user chat page
+                if (jQuery.inArray(user_id, users) === -1) {
+                    users.push(user_id);
+                    var people = $("<ul class=\"people\" id=\"" + user_id + "u" + "\"" + "onClick=\"set_activity("  + onclick_id + ")\">" +
+                            "<li class=\"person\" id=\"" + user_id + "p" + "\">" +
+                            "<img src=\"../static/dog.png\" alt=\"\" />" +
+                            "<span class=\"name\">" + user_id + "</span>" +
+                            "<span class=\"time\" id=\"" + user_id + "t" + "\">" + time + "</span>" +
+                            "<span class=\"preview\" style=\"color: red\" id=\"" + user_id + "s" + "\">" + info + "</span>" +
+                            "</li>" +
+                            "</ul>");
+
+
+                    var people_chat = $("<div style=\"display: none\" id=\"" + user_id + "ch" + "\">" +
+                            "<div class=\"top\"><span>To: <span class=\"name\">" + user_id + "</span></span></div>" +
+                            "<div class=\"chat\" style=\"height: 80%; overflow: auto\" id=\"" + user_id + "c" + "\">" +
+                            "<div class=\"conversation-start\">" + time + "</div>" +
+                            "<div class=\"bubble you\">" + info +
+                            "</div>" +
+                            "</div>" +
+                            "</div>");
+
+                    $("#chat_peoples").prepend(people);
+                    $("#chat_info").append(people_chat);
+
+                } else {
+                    var chat = $("#chat_peoples");
+                    var user = "#" + user_id + "u";
+                    var user_span = "#" + user_id + "s";
+                    var user_time = "#" + user_id + "t";
+                    var user_chat = "#" + user_id + "c";
+                    var active_people = "#" + user_id + "p";
+
+                    $(user).remove();
+                    chat.prepend($("<ul class=\"people\" id=\"" + user_id + "u" + "\"" + "onclick=\"set_activity(" + "\'"+ user_id + "\'"+ ")\">" +
+                            "<li class=\"person\" id=\"" + user_id + "p" + "\">" +
+                            "<img src=\"../static/dog.png\" alt=\"\" />" +
+                            "<span class=\"name\">" + user_id + "</span>" +
+                            "<span class=\"time\" id=\"" + user_id + "t" + "\">" + time + "</span>" +
+                            "<span class=\"preview\" style=\"color: red\" id=\"" + user_id + "s" + "\">" + info + "</span>" +
+                            "</li>" +
+                            "</ul>"));
+
+                    $(user_span).val(info);
+                    $(user_span).css('color', 'red');
+                    $(user_time).val(time);
+                    $(user_chat).append("<div class=\"bubble you\">" + info + "</div>");
+
+                    var current_user = "#" + current + "p";
+                    $(current_user).removeClass("active");
+
+                    $(active_people).addClass("active");
+                }
+            });
+        } catch (e) {
+            socket.close();
+        }
+
+
+        function set_activity(user_id) {
+
+            var active_people = "#" + user_id + "p";
+            var people_chat = "#" + user_id + "ch";
+            var chat_span = "#" + user_id + "s";
+
+            if (current !== "") {
+                var current_user = "#" + current + "p";
+                var current_chat = "#" + current + "ch";
+                $(current_user).removeClass("active");
+                $(current_chat).hide();
+                current = user_id;
+            } else {
+                current = user_id;
+            }
+
+            $(active_people).addClass("active");
+            $(people_chat).show();
+            $(chat_span).css("color", "gary");
+        }
+
+
+        window.onkeydown = function(event){
+            if(event.keyCode === 13){
+                if(input.val() !== "" && current !== ""){
+                    send_msg(input.val());
+                }
+            }
+        };
+
+        $("#send_btn").click(function () {
+            if (input.val() !== "" && current !== "") {
+                send_msg(input.val());
+            }
+        });
+
+        function send_msg(message) {
+            var user_chat = "#" + current + "c";
+            socket.emit('staff post', {
+               user_message: escape(message),
+               user_id: current
+            });
+            $(user_chat).append("<div class=\"bubble me\">" + message + "</div>");
+            input.val('').focus();
+            update(message);
+        }
+
+
+        function update(info) {
+            var current_input = "#" + current + "c";
+            var active_people = "#" + current + "p";
+
+            $(current_input).scrollTop($(current_input)[0].scrollHeight);
+
+
+            var dt = new Date();
+            var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+            var chat = $("#chat_peoples");
+            var user = "#" + current + "u";
+
+            $(user).remove();
+            chat.prepend($("<ul class=\"people\" id=\"" + current + "u" + "\"" + "onclick=\"set_activity(" + "\'" +  current + "\'" +")\">" +
+                    "<li class=\"person\" id=\"" + current + "p" + "\">" +
+                    "<img src=\"../static/dog.png\" alt=\"\" />" +
+                    "<span class=\"name\">" + current + "</span>" +
+                    "<span class=\"time\" id=\"" + current + "t" + "\">" + time + "</span>" +
+                    "<span class=\"preview\" style=\"color: gray\" id=\"" + current + "s" + "\">" + info + "</span>" +
+                    "</li>" +
+                    "</ul>"));
+
+            var current_user = "#" + current + "p";
+            $(current_user).removeClass("active");
+
+            $(active_people).addClass("active");
+        }
+
+        try {
+            socket.on('leave', function (str) {
+                var user = "#" + str + "u";
+                var user_chat = "#" + str + "ch";
+                $(user).remove();
+                $(user_chat).remove();
+                current = "";
+            });
+        } catch (e) {
+            socket.close();
+        }
+
+    </script>
+
+</html>

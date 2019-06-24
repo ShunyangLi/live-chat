@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Chat page</title>
+		<link rel="stylesheet" type="text/css" href="../static/style.css" />
+	</head>
+	<body>
+		<div class="outer">
+			<div class="box">
+				<div class="chat">
+					<div class="top">
+						<span class="">Staff</span>
+					</div>
+					<div class="content">
+						<select multiple="multiple" id="leftContent">
+
+						</select>
+					</div>
+					<div class="send">
+						<input type="text" id="leftText" class="sText" />
+						<input type="button" id="leftSendBtn" class="btn" value="Send"/>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</body>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+
+    <script type="text/javascript">
+
+        var id = Math.random().toString(36).substring(7);
+
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var input = $("#leftText");
+
+        window.onkeydown = function(event){
+            if(event.keyCode === 13){
+                if(input.val() !== ""){
+                    send_msg(input.val());
+                }
+            }
+        };
+
+        $("#leftSendBtn").click(function () {
+            if (input.val() !== "") {
+                send_msg(input.val());
+            }
+        });
+
+        function send_msg(message) {
+            socket.emit('user post', {
+               user_message: escape(message),
+               user_id: id
+            });
+            var len = message.length;
+            var wid = len * 8 + len*2 + "px";
+            var mf = 350 - (len * 8 + len*2) - 72 +"px";
+            $("#leftContent").append("<option style=\"width: " + wid + "; margin-left: " + mf + ";\">" + message + "</option>");
+            input.val('').focus();
+            update();
+        }
+
+        socket.on( id, function( msg ) {
+            msg = unescape(msg);
+            var len = msg.length;
+            var wid = len * 8 + len*2 + "px";
+
+            console.log(len, wid);
+            $("#leftContent").append("<option style=\"background-color: white; margin-left: 10px; width: " + wid + "\"" + ">" + msg + "</option>");
+            update();
+        });
+
+        function update() {
+            $("#leftContent").scrollTop($("#leftContent")[0].scrollHeight);
+        }
+
+        $(window).unload(function(){
+            socket.emit('leave', {
+               user_id: id
+            });
+        });
+    </script>
+
+</html>
