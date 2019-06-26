@@ -166,5 +166,19 @@
             }
         }
 
+
+        screenFuc();
+        function screenFuc() {
+            // the top of chat page
+            var winWidth = $(window).innerWidth();
+            // this is mobil device
+            if (winWidth <= 768) {
+                $(".container").css('left', '50%');
+            }
+        }
+        (window.onresize = function () {
+            screenFuc();
+        })();
+
     </script>
 </html>
