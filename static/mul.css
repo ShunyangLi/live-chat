@@ -267,7 +267,7 @@ body {
   width: 20px;
   height: 42px;
   content: '';
-  background-image: url("../img/attachment.png");
+  background-image: url("../static/attachment.png");
   background-repeat: no-repeat;
   background-position: center;
 }

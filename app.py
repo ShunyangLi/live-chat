@@ -8,7 +8,7 @@ socketio = SocketIO(app)
 
 @app.route('/')
 def index():
-    return render_template('chat.html')
+    return render_template('customer.html')
 
 @app.route('/staff/', methods=["POST", "GET"])
 def staff():
@@ -23,7 +23,7 @@ def handle_user_post(str, methods=['GET', 'POST']):
 @socketio.on('staff post')
 def handle_staff_post(str,  methods=['GET', 'POST']):
     user_id = str["user_id"]
-    socketio.emit(user_id, str["user_message"])
+    socketio.emit(user_id, str)
 
 @socketio.on('leave')
 def handle_user_leave(str, methods=['GET', 'POST']):
@@ -31,4 +31,4 @@ def handle_user_leave(str, methods=['GET', 'POST']):
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host='0.0.0.0', port=80)
+    socketio.run(app, debug=True)

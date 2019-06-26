@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="zh-cn" >
+
+<head>
+<meta charset="UTF-8">
+<title>Chat page</title>
+<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../static/reset.min.css">
+<link rel="stylesheet" href="../static/mul.css">
+</head>
+
+    <body>
+        <div class="wrapper">
+            <div class="container" style="width: 50%">
+                <div class="right" id="customer_info" style="width: 100%">
+                    <div id="customer_input">
+                        <div class="top"><span>To: <span class="name">Server</span></span></div>
+                        <div class="chat" style="height: 80%; overflow: auto" id="chat_info">
+                            <div class="conversation-start" id="start_time" style="margin-bottom: 5%; margin-top: 5%">
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="write">
+                        <a class="write-link attach" id="attach"></a>
+                        <input type="file" style="display: none" id="img" onchange="encodeImageToBase64(this)">
+                        <input type="text" id="user_input" />
+                        <a href="javascript:;" class="write-link send" id="send_btn"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+
+    <script>
+        var image_base64 = "";
+        var id = Math.random().toString(36).substring(7);
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var input = $("#user_input");
+
+
+        socket.on( id, function( msg ) {
+            var info = unescape(msg.user_message);
+            var img_64 = unescape(msg.user_image);
+            var dt = new Date();
+            var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+            var user_chat = $("#chat_info");
+
+            $("#start_time").html(time);
+
+            if (info !== "") {
+                $(user_chat).append("<div class=\"bubble you\">" + info + "</div>");
+            }
+
+            if (img_64 !== "") {
+                $(user_chat).append("<div class=\"bubble you\">" + "<img width=\"350px\" height=\"320px\" src=\"" + img_64 + "\">" + "</div>");
+            }
+            $(user_chat).scrollTop($(user_chat)[0].scrollHeight);
+        });
+
+
+        window.onkeydown = function(event){
+            if(event.keyCode === 13){
+                if(input.val() !== "" || image_base64 !== ""){
+                    send_msg(input.val());
+                }
+            }
+        };
+
+        $("#send_btn").click(function () {
+            if (input.val() !== "" || image_base64 !== "") {
+                send_msg(input.val());
+            }
+        });
+
+
+        function send_msg(message) {
+            var user_chat = $("#chat_info");
+
+            socket.emit('user post', {
+               user_message: escape(message),
+               user_image: escape(image_base64),
+               user_id: id
+            });
+
+            var dt = new Date();
+            var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+            $("#start_time").html(time);
+
+            if (message !== "") {
+                $(user_chat).append("<div class=\"bubble me\">" + message + "</div>");
+            }
+
+            if (image_base64 !== "") {
+                $(user_chat).append("<div class=\"bubble me\">" + "<img width=\"350px\" height=\"320px\" src=\"" + image_base64 + "\">" + "</div>");
+            }
+            $(user_chat).scrollTop($(user_chat)[0].scrollHeight);
+            input.val('').focus();
+        }
+
+
+
+        // set onclick of attachment
+        $("#attach").click(function () {
+            $("#img").click();
+        });
+
+        // generate the base64 for image
+        function encodeImageToBase64(element) {
+            var file = element.files[0];
+            var reader = new FileReader();
+
+            reader.onloadend = function() {
+                image_base64 = reader.result;
+            };
+            reader.readAsDataURL(file);
+
+        }
+
+        $(window).unload(function(){
+            socket.emit('leave', {
+               user_id: id
+            });
+        });
+
+    </script>
+</html>

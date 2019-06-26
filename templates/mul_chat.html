@@ -21,6 +21,8 @@
             <div class="right" id="chat_info">
 
                 <div class="write">
+                    <a class="write-link attach" id="attach"></a>
+                    <input type="file" style="display: none" id="img" onchange="encodeImageToBase64(this)">
                     <input type="text" id="user_input" />
                     <a href="javascript:;" class="write-link send" id="send_btn"></a>
                 </div>
@@ -36,6 +38,7 @@
     <script>
         var users = [];
         var current = "";
+        var image_base64 = "";
         var input = $("#user_input");
         var socket = io.connect('http://' + document.domain + ':' + location.port);
 
@@ -43,6 +46,8 @@
             socket.on( 'staff', function( msg ) {
                 var user_id = msg.user_id;
                 var info = unescape(msg.user_message);
+                var img_64 = unescape(msg.user_image);
+
                 var onclick_id = "\'"+user_id+ "\'";
                 var dt = new Date();
                 var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
@@ -60,6 +65,23 @@
                             "</ul>");
 
 
+                    var chat_content = "<div style=\"display: none\" id=\"" + user_id + "ch" + "\">" +
+                            "<div class=\"top\"><span>To: <span class=\"name\">" + user_id + "</span></span></div>" +
+                            "<div class=\"chat\" style=\"height: 80%; overflow: auto\" id=\"" + user_id + "c" + "\">" +
+                            "<div class=\"conversation-start\">" + time + "</div>";
+
+                    if (info !== "") {
+                        chat_content += "<div class=\"bubble you\">" + info + "</div>";
+                    }
+
+                    if (img_64 !== "") {
+                        chat_content += "<div class=\"bubble you\">" + "<img width=\"350px\" height=\"320px\" src=\"" + img_64 + "\">" + "</div>";
+                    }
+
+                    chat_content += "</div>" +
+                                    "</div>";
+
+                    /**
                     var people_chat = $("<div style=\"display: none\" id=\"" + user_id + "ch" + "\">" +
                             "<div class=\"top\"><span>To: <span class=\"name\">" + user_id + "</span></span></div>" +
                             "<div class=\"chat\" style=\"height: 80%; overflow: auto\" id=\"" + user_id + "c" + "\">" +
@@ -68,9 +90,10 @@
                             "</div>" +
                             "</div>" +
                             "</div>");
+                     **/
 
                     $("#chat_peoples").prepend(people);
-                    $("#chat_info").append(people_chat);
+                    $("#chat_info").append(chat_content);
 
                 } else {
                     var chat = $("#chat_peoples");
@@ -93,12 +116,21 @@
                     $(user_span).val(info);
                     $(user_span).css('color', 'red');
                     $(user_time).val(time);
-                    $(user_chat).append("<div class=\"bubble you\">" + info + "</div>");
 
+                    if (info !== "") {
+                        $(user_chat).append("<div class=\"bubble you\">" + info + "</div>");
+                    }
+
+                    if (img_64 !== "") {
+                        $(user_chat).append("<div class=\"bubble you\">" + "<img width=\"350px\" height=\"320px\" src=\"" + img_64 + "\">" + "</div>");
+                    }
+
+                    /*
                     var current_user = "#" + current + "p";
                     $(current_user).removeClass("active");
 
                     $(active_people).addClass("active");
+                     */
                 }
             });
         } catch (e) {
@@ -130,25 +162,35 @@
 
         window.onkeydown = function(event){
             if(event.keyCode === 13){
-                if(input.val() !== "" && current !== ""){
+                if((input.val() !== "" || image_base64 !== "") && current !== ""){
                     send_msg(input.val());
                 }
             }
         };
 
         $("#send_btn").click(function () {
-            if (input.val() !== "" && current !== "") {
+            if ((input.val() !== "" || image_base64 !== "") && current !== "") {
                 send_msg(input.val());
             }
         });
 
         function send_msg(message) {
             var user_chat = "#" + current + "c";
+
             socket.emit('staff post', {
                user_message: escape(message),
+               user_image: escape(image_base64),
                user_id: current
             });
-            $(user_chat).append("<div class=\"bubble me\">" + message + "</div>");
+
+            if (message !== "") {
+                $(user_chat).append("<div class=\"bubble me\">" + message + "</div>");
+            }
+
+            if (image_base64 !== "") {
+                $(user_chat).append("<div class=\"bubble me\">" + "<img width=\"350px\" height=\"320px\" src=\"" + image_base64 + "\">" + "</div>");
+            }
+
             input.val('').focus();
             update(message);
         }
@@ -180,6 +222,8 @@
             $(current_user).removeClass("active");
 
             $(active_people).addClass("active");
+
+            image_base64 = "";
         }
 
         try {
@@ -192,6 +236,24 @@
             });
         } catch (e) {
             socket.close();
+        }
+
+
+        // set onclick of attachment
+        $("#attach").click(function () {
+            $("#img").click();
+        });
+
+        // generate the base64 for image
+        function encodeImageToBase64(element) {
+            var file = element.files[0];
+            var reader = new FileReader();
+
+            reader.onloadend = function() {
+                image_base64 = reader.result;
+            };
+            reader.readAsDataURL(file);
+
         }
 
     </script>
