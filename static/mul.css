@@ -138,14 +138,24 @@ body {
   width: 75%;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--grey);
+  color: var(--light);
 }
-.container .left .people .person.active, .container .left .people .person:hover {
+.container .left .people .person.active{
   margin-top: -1px;
   margin-left: -1px;
   padding-top: 13px;
   border: 0;
   background-color: var(--blue);
+  width: calc(100% + 2px);
+  padding-left: calc(10% + 1px);
+}
+
+.container .left .people .person:hover {
+  margin-top: -1px;
+  margin-left: -1px;
+  padding-top: 13px;
+  border: 0;
+  background-color: var(--light);
   width: calc(100% + 2px);
   padding-left: calc(10% + 1px);
 }

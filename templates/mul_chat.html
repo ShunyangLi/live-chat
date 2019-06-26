@@ -112,7 +112,6 @@
                     var user_span = "#" + user_id + "s";
                     var user_time = "#" + user_id + "t";
                     var user_chat = "#" + user_id + "c";
-                    var active_people = "#" + user_id + "p";
 
                     $(user).remove();
                     chat.prepend($("<ul class=\"people\" id=\"" + user_id + "u" + "\"" + "onclick=\"set_activity(" + "\'"+ user_id + "\'"+ ")\">" +
@@ -147,13 +146,15 @@
                         }
                     }
 
-                    /*
                     var current_user = "#" + current + "p";
                     $(current_user).removeClass("active");
+                    $(current_user).addClass("active");
 
-                    $(active_people).addClass("active");
-                     */
+                    var current_input = "#" + current + "c";
+                    $(current_input).scrollTop($(current_input)[0].scrollHeight);
                 }
+
+
             });
         } catch (e) {
             socket.close();
