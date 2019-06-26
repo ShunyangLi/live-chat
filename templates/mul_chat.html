@@ -246,8 +246,15 @@
 
         // generate the base64 for image
         function encodeImageToBase64(element) {
+            var acceptedImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
+
             var file = element.files[0];
             var reader = new FileReader();
+
+            if (acceptedImageTypes.indexOf(file.type) === -1) {
+                image_base64 = "";
+                return;
+            }
 
             reader.onloadend = function() {
                 image_base64 = reader.result;
