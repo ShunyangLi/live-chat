@@ -75,7 +75,18 @@
                     }
 
                     if (img_64 !== "") {
-                        chat_content += "<div class=\"bubble you\">" + "<img width=\"350px\" height=\"320px\" src=\"" + img_64 + "\">" + "</div>";
+                        if (img_64.indexOf("video") >= 0) {
+                             chat_content += "<div class=\"bubble you\">" +
+                                "<video width=\"350px\" height=\"320px\" " +
+                                "x-webkit-airplay=\"true\" webkit-playsinline=\"true\"" +
+                                " onclick=\"view_play(this)\"" +
+                                " src=\"" + img_64 + "\">" + "</video></div>";
+                        } else {
+                            chat_content += "<div class=\"bubble you\">" +
+                                "<img width=\"350px\" " +
+                                "height=\"320px\" src=\"" + img_64 + "\">" +
+                                "</div>";
+                        }
                     }
 
                     chat_content += "</div>" +
@@ -122,7 +133,18 @@
                     }
 
                     if (img_64 !== "") {
-                        $(user_chat).append("<div class=\"bubble you\">" + "<img width=\"350px\" height=\"320px\" src=\"" + img_64 + "\">" + "</div>");
+                        if (img_64.indexOf("video") >= 0) {
+                            $(user_chat).append("<div class=\"bubble you\">" +
+                                "<video width=\"350px\" height=\"320px\" " +
+                                "x-webkit-airplay=\"true\" webkit-playsinline=\"true\"" +
+                                " onclick=\"view_play(this)\"" +
+                                " src=\"" + img_64 + "\">" + "</video></div>");
+                        } else {
+                            $(user_chat).append("<div class=\"bubble you\">" +
+                                "<img width=\"350px\" " +
+                                "height=\"320px\" src=\"" + img_64 + "\">" +
+                                "</div>");
+                        }
                     }
 
                     /*
@@ -157,6 +179,9 @@
             $(active_people).addClass("active");
             $(people_chat).show();
             $(chat_span).css("color", "gary");
+
+            var current_input = "#" + current + "c";
+            $(current_input).scrollTop($(current_input)[0].scrollHeight);
         }
 
 
@@ -188,7 +213,17 @@
             }
 
             if (image_base64 !== "") {
-                $(user_chat).append("<div class=\"bubble me\">" + "<img width=\"350px\" height=\"320px\" src=\"" + image_base64 + "\">" + "</div>");
+                if (image_base64.indexOf("video") >= 0) {
+                    $(user_chat).append("<div class=\"bubble me\">" +
+                        "<video width=\"350px;\" x-webkit-airplay=\"true\" " +
+                        "webkit-playsinline=\"true\" height=\"320px;\" " +
+                        "onclick=\"view_play(this)\" src=\"" + image_base64 + "\">" +
+                        "</video></div>");
+                } else {
+                    $(user_chat).append("<div class=\"bubble me\">" +
+                        "<img width=\"350px;\" height=\"320px;\" " +
+                        "src=\"" + image_base64 + "\">" + "</div>");
+                }
             }
 
             input.val('').focus();
@@ -246,7 +281,7 @@
 
         // generate the base64 for image
         function encodeImageToBase64(element) {
-            var acceptedImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
+            var acceptedImageTypes = ['image/gif', 'image/jpeg', 'image/png','video/mp4'];
 
             var file = element.files[0];
             var reader = new FileReader();
@@ -261,6 +296,14 @@
             };
             reader.readAsDataURL(file);
 
+        }
+
+        function view_play(element) {
+            if(element.paused){
+                element.play();
+            }else{
+                element.pause();
+            }
         }
 
     </script>

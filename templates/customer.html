@@ -3,18 +3,19 @@
 <html lang="zh-cn" >
 
 <head>
-<meta charset="UTF-8">
-<title>Chat page</title>
-<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" rel="stylesheet">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="../static/reset.min.css">
-<link rel="stylesheet" href="../static/mul.css">
+    <meta charset="UTF-8">
+    <title>Chat page</title>
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../static/reset.min.css">
+    <link rel="stylesheet" href="../static/mul.css">
+
 </head>
 
     <body>
         <div class="wrapper">
             <div class="container" style="width: 50%">
-                <div class="right" id="customer_info" style="width: 100%">
+                <div class="right" id="customer_info" style="width: 100%;text-align: center;position:relative;">
                     <div id="customer_input">
                         <div class="top"><span>To: <span class="name">Server</span></span></div>
                         <div class="chat" style="height: 80%; overflow: auto" id="chat_info">
@@ -59,7 +60,16 @@
             }
 
             if (img_64 !== "") {
-                $(user_chat).append("<div class=\"bubble you\">" + "<img width=\"350px\" height=\"320px\" src=\"" + img_64 + "\">" + "</div>");
+                if (img_64.indexOf("video") >= 0) {
+                    $(user_chat).append("<div class=\"bubble you\">" +
+                        "<video width=\"350px\" height=\"320px\" " +
+                        "x-webkit-airplay=\"true\" webkit-playsinline=\"true\" " +
+                        "onclick=\"view_play(this)\" src=\"" + img_64 + "\">" + "</video></div>");
+                } else {
+                    $(user_chat).append("<div class=\"bubble you\">" +
+                        "<img width=\"350px\" height=\"320px\" src=\"" +
+                        img_64 + "\">" + "</div>");
+                }
             }
             $(user_chat).scrollTop($(user_chat)[0].scrollHeight);
         });
@@ -98,9 +108,20 @@
             }
 
             if (image_base64 !== "") {
-                $(user_chat).append("<div class=\"bubble me\">" + "<img width=\"350px\" height=\"320px\" src=\"" + image_base64 + "\">" + "</div>");
+                if (image_base64.indexOf("video") >= 0) {
+                    $(user_chat).append("<div class=\"bubble me\">" +
+                        "<video width=\"350px;\" x-webkit-airplay=\"true\" " +
+                        "webkit-playsinline=\"true\" height=\"320px;\" " +
+                        "onclick=\"view_play(this)\" src=\"" + image_base64 + "\">" +
+                        "</video></div>");
+                } else {
+                    $(user_chat).append("<div class=\"bubble me\">" +
+                        "<img width=\"350px;\" height=\"320px;\" src=\"" + image_base64 + "\">" +
+                        "</div>");
+                }
             }
             $(user_chat).scrollTop($(user_chat)[0].scrollHeight);
+            image_base64 = "";
             input.val('').focus();
         }
 
@@ -113,7 +134,7 @@
 
         // generate the base64 for image
         function encodeImageToBase64(element) {
-            var acceptedImageTypes = ['image/gif', 'image/jpeg', 'image/png'];
+            var acceptedImageTypes = ['image/gif', 'image/jpeg', 'image/png','video/mp4'];
 
             var file = element.files[0];
             var reader = new FileReader();
@@ -135,6 +156,15 @@
                user_id: id
             });
         });
+
+
+        function view_play(element) {
+            if(element.paused){
+                element.play();
+            }else{
+                element.pause();
+            }
+        }
 
     </script>
 </html>
