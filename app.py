@@ -1,8 +1,10 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'vnkdjnfjknfl1232#'
+CORS(app)
 socketio = SocketIO(app)
 
 
@@ -17,6 +19,7 @@ def staff():
 
 @socketio.on('user post')
 def handle_user_post(str, methods=['GET', 'POST']):
+    print(str)
     socketio.emit('staff', str)
 
 
